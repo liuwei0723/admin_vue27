@@ -33,7 +33,7 @@
 <script>
 //导出一个组件的Vue实例
 // 导入axios
-import axios from 'axios'
+// import axios from 'axios'
 export default {
   data() {
     return {
@@ -58,8 +58,8 @@ export default {
       this.$refs.userForm.validate(vaild => {
         if (vaild) {
           this.loading = true
-          axios
-            .post('http://127.0.0.1:8888/api/private/v1/login', this.userForm)
+          this.$axios
+            .post('login', this.userForm)
             .then(res => {
               this.loading = false
               if (res.data.meta.status !== 200) {
@@ -67,7 +67,11 @@ export default {
                 this.$message.error(res.data.meta.msg)
               } else {
                 this.$message({message:'登录成功',type:'success'})
-                this.$router.push('/layout')
+                console.log(res.data.data);
+                localStorage.setItem('mytoken',res.data.data.token)
+
+                
+                this.$router.push('/layout/users')
               }
             })
         }
