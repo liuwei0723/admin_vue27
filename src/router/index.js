@@ -14,16 +14,60 @@ import Welcome from '../components/welcome/Welcome.vue'
 
 //创建路由对象,导出去
 const router = new VueRouter({
-    routes:[
-        {path:'/',redirect:'/login'},
-        {path:'/login',component:Login},
-        {path:'/layout',name:'layout',component:Layout,children:[
-            {path:'',component:Welcome},
-            {path:'users',component:Users},
-        ]},
-        
+    routes: [{
+            path: '/',
+            redirect: '/login'
+        },
+        {
+            path: '/login',
+            meta: {
+                unRequiresAuth: true
+            },
+            component: Login
+        },
+        {
+            path: '/layout',
+            name: 'layout',
+            component: Layout,
+            children: [{
+                    path: '',
+                    component: Welcome
+                },
+                {
+                    path: 'users',
+                    component: Users
+                },
+            ]
+        },
+
 
     ]
+})
+
+//导航守卫
+router.beforeEach((to, from, next) => {
+    //判断本地是否有token,如果有代表登录,如果没有就跳转到login页面
+    // if(to.fullPath !== '/login'){
+    //     if(localStorage.getItem('mytoken')){
+    //         next()
+    //     }else{
+    //         return router.push({path:'/login'})
+    //     }
+    // }
+
+    // next()
+    if (to.meta.unRequiresAuth) {//不需要权限验证
+        next()
+    } else {
+        //需要权限验证
+        if (localStorage.getItem('mytoken')) {
+            next()
+        } else {
+            return router.push({
+                path: '/login'
+            })
+        }
+    }
 })
 
 //es6导出

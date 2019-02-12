@@ -132,7 +132,22 @@ export default {
     toggleMenu() {
       this.isCollapse = !this.isCollapse
     },
-    logout() {}
+    logout() {
+      this.$confirm('是否确定退出?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          
+          localStorage.removeItem('mytoken')
+          this.$router.push('/login')
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消退出'
+          });          
+        });
+    }
   }
 }
 </script>
