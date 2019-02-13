@@ -335,7 +335,9 @@ export default {
         })
         return
       }
-      this.$axios.put(`users/${this.grantUserId}/role`,rid).then(res => {
+      this.$axios.put(`users/${this.grantUserId}/role`,{
+        rid:this.roleId
+      }).then(res => {
         console.log(res)
         if (res.data.meta.status === 200) {
           // 关闭对话框

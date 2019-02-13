@@ -11,6 +11,7 @@
       </el-col>
     </el-row>
     <el-table :data="rightsList" border style="width: 100%">
+      <el-table-column type="index" label="#" width="50"></el-table-column>
       <el-table-column prop="authName" label="权限名称" width="180"></el-table-column>
       <el-table-column prop="path" label="路径" width="180"></el-table-column>
       <el-table-column prop="level" label="层级" :formatter="formatter"></el-table-column>
@@ -28,16 +29,9 @@
   line-height: 50px;
   padding-left: 10px;
 }
-.search {
-  width: 300px;
-}
 
-.el-pagination {
-  background-color: #d3dce6;
-  padding-top: 10px;
-  height: 35px;
-  line-height: 35px;
-}
+
+
 </style>
 
 <script>
@@ -49,8 +43,9 @@ export default {
   },
   //当我们Rights组件的实例,创建完毕的时候,就会执行
   /**
-   * created
+   * created 是Vue实例创建出来之后,就会执行
    * mounted 是页面完成了初次渲染之后,才会执行,执行的时机会晚于created
+   * 如果你希望我们的数据请求,越早发越好,这个时候就建议使用created
    */
   created() {
     this.getRightListData()

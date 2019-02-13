@@ -21,7 +21,6 @@
           <el-menu-item index="/layout/users">
             <i class="el-icon-menu"></i>用户列表
           </el-menu-item>
-
         </el-submenu>
         <el-submenu index="2">
           <template slot="title">
@@ -88,7 +87,7 @@
   display: block;
 }
 .el-menu {
-  border-right: 0
+  border-right: 0;
 }
 .el-main {
   background-color: #e9eef3;
@@ -134,19 +133,20 @@ export default {
     },
     logout() {
       this.$confirm('是否确定退出?', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(() => {
           localStorage.removeItem('mytoken')
           this.$router.push('/login')
-        }).catch(() => {
+        })
+        .catch(() => {
           this.$message({
             type: 'info',
             message: '已取消退出'
-          });          
-        });
+          })
+        })
     }
   }
 }
