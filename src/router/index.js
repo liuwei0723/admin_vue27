@@ -56,7 +56,7 @@ router.beforeEach((to, from, next) => {
     // }
 
     // next()
-    if (to.meta.unRequiresAuth) {//不需要权限验证
+    if (to.meta.unRequiresAuth) { //不需要权限验证
         next()
     } else {
         //需要权限验证

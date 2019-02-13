@@ -24,14 +24,35 @@
       <el-table-column label="用户状态" width="100">
         <template slot-scope="scope">
           <!-- scope.row 就拿到当前遍历的那一行数据 -->
-          <el-switch v-model="scope.row.mg_state"></el-switch>
+          <el-switch
+            @change="changeState(scope.row.mg_state,scope.row.id)"
+            v-model="scope.row.mg_state"
+          ></el-switch>
         </template>
       </el-table-column>
       <el-table-column label="操作">
         <template slot-scope="scope">
-          <el-button icon="el-icon-edit" type="primary" size="mini" plain></el-button>
-          <el-button size="mini" icon="el-icon-delete" type="danger" plain></el-button>
-          <el-button size="mini" icon="el-icon-check" type="warning" plain></el-button>
+          <el-button
+            icon="el-icon-edit"
+            type="primary"
+            size="mini"
+            plain
+            @click="editUser(scope.row.id)"
+          ></el-button>
+          <el-button
+            size="mini"
+            icon="el-icon-delete"
+            type="danger"
+            plain
+            @click="deleteUser(scope.row.id)"
+          ></el-button>
+          <el-button
+            size="mini"
+            icon="el-icon-check"
+            type="warning"
+            plain
+            @click="assignRole(scope.row)"
+          ></el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -64,6 +85,45 @@
       <span slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible4Add = false">取 消</el-button>
         <el-button type="primary" @click="addUser">确 定</el-button>
+      </span>
+    </el-dialog>
+    <!-- 6.0 修改用户的对话框 -->
+    <el-dialog title="修改用户" :visible.sync="dialogVisible4Edit" width="40%">
+      <el-form :model="editUserObj" :rules="rules" ref="editUserObj" label-width="100px">
+        <el-form-item label="用户名" prop="username">
+          <el-input style="width:40%" disabled v-model="editUserObj.username"></el-input>
+        </el-form-item>
+
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="editUserObj.email"></el-input>
+        </el-form-item>
+        <el-form-item label="电话" prop="mobile">
+          <el-input v-model="editUserObj.mobile"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible4Edit = false">取 消</el-button>
+        <el-button type="primary" @click="editUser2">确 定</el-button>
+      </span>
+    </el-dialog>
+    <!--7.0 分配角色 -->
+    <el-dialog title="分配角色" :visible.sync="dialogVisible4Grant" width="50%">
+      <el-form :model="editUserObj" :rules="rules" ref="editUserObj" label-width="120px">
+        <el-form-item label="当前的用户名：">{{grantUserName}}</el-form-item>
+        <el-form-item label="请选择角色：">
+          <el-select v-model="roleName" placeholder="请选择" @change="selectRole">
+            <el-option
+              v-for="item in roleList"
+              :key="item.id"
+              :label="item.roleName"
+              :value="item.id"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible4Grant = false">取 消</el-button>
+        <el-button type="primary" @click="submitAssignRole">确 定</el-button>
       </span>
     </el-dialog>
   </div>
@@ -100,25 +160,31 @@ export default {
       userList: [], //用户列表
       total: 0, //总条数
       dialogVisible4Add: false, //刚开始是隐藏
+      dialogVisible4Edit: false, //刚开始是隐藏
+      dialogVisible4Grant: false, //分配角色
       addUserObj: {
         username: '',
         password: '',
         email: '',
         mobile: ''
       },
-      rules:{
-        username:[
-          {required:true,message:'请输入用户名',trigger:'blur'}
+      editUserObj: {
+        //修改用户信息时候的对象
+      },
+      grantUserName: '', // 被授权的用户名
+      roleId: -1, // 选中的角色id
+      roleName: '', // 之前授权的角色名称
+      roleList: [], //角色列表
+      rules: {
+        username: [
+          { required: true, message: '请输入用户名', trigger: 'blur' }
         ],
-        password:[
-          {required:true,message:'请输入密码',trigger:'blur'}
-        ]
+        password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
       }
     }
   },
   // 当Users组件的实例创建完成之后，会自动执行该函数
   created() {
-    // console.log(1111)
     this.getUserListData()
   },
   methods: {
@@ -154,29 +220,133 @@ export default {
       this.pagenum = pagenum
       this.getUserListData()
     },
+    //新增用户
     addUser() {
       //拿到el-form表单
       this.$refs.addUserRef.validate(valid => {
         if (valid) {
           //验证通过
-          this.$axios
-            .post(
-              `users`,
-              this.addUserObj
-            )
-            .then(res => {
-              if (res.data.meta.status === 201) {
-                //隐藏对话框
-                this.dialogVisible4Add = false
-                //提示
-                this.$message({
-                  type: 'success',
-                  message: res.data.meta.msg
-                })
-                // 重新查询列表
-                this.getUserListData()
-              }
+          this.$axios.post(`users`, this.addUserObj).then(res => {
+            if (res.data.meta.status === 201) {
+              //隐藏对话框
+              this.dialogVisible4Add = false
+              //提示
+              this.$message({
+                type: 'success',
+                message: res.data.meta.msg
+              })
+              // 重新查询列表
+              this.getUserListData()
+            }
+          })
+        }
+      })
+    },
+    //更新状态
+    changeState(state, userId) {
+      this.$axios.put(`users/${userId}/state/${state}`).then(response => {
+        if (response.data.meta.status === 200) {
+          this.$message({
+            message: response.data.meta.msg,
+            type: 'success'
+          })
+        }
+      })
+    },
+    //查询用户信息
+    editUser(userId) {
+      this.$axios.get(`users/${userId}`).then(response => {
+        //赋值给模型,弹出修改框
+        this.editUserObj = response.data.data
+        //弹出修改框
+        this.dialogVisible4Edit = true
+      })
+    },
+    //修改用户信息
+    editUser2() {
+      this.$axios
+        .put(`users/${this.editUserObj.id}`, this.editUserObj)
+        .then(response => {
+          // console.log(response);
+          if (response.data.meta.status === 200) {
+            this.$message({
+              message: response.data.meta.msg,
+              type: 'success'
             })
+          }
+          //关闭修改框
+          this.dialogVisible4Edit = false
+          //刷新列表
+          this.getUserListData()
+        })
+    },
+    //删除单个用户
+    deleteUser(userId) {
+      this.$confirm('删除该用户, 是否确认?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(() => {
+          //删除的逻辑
+          this.$axios.delete(`users/${userId}`).then(response => {
+            console.log(response)
+            if (response.data.meta.status === 200) {
+              this.$message({
+                type: 'success',
+                message: response.data.meta.msg
+              })
+              this.pagenum = 1
+              this.getUserListData()
+            }
+          })
+        })
+        .catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          })
+        })
+    },
+    //分配角色
+    assignRole(user) {
+      this.grantUserName = user.username
+      this.grantUserId = user.id
+      this.roleId = user.role_id
+      this.roleName = user.role_name
+      //获取所有角色列表
+      this.$axios.get(`roles`).then(response => {
+        //赋值给模型,弹出修改框
+        this.roleList = response.data.data
+        //弹出修改框
+        this.dialogVisible4Grant = true
+      })
+    },
+    //修改角色
+    selectRole(roleId) {
+      this.roleId = roleId
+    },
+    //提交分配角色
+    submitAssignRole() {
+      if (!this.roleId) {
+        this.$message({
+          message: '请选择角色!',
+          type: 'warning'
+        })
+        return
+      }
+      this.$axios.put(`users/${this.grantUserId}/role`,rid).then(res => {
+        console.log(res)
+        if (res.data.meta.status === 200) {
+          // 关闭对话框
+          this.dialogVisible4Grant = false
+          // 重新查询
+          this.getUserListData()
+          // 提示
+          this.$message({
+            message: res.data.meta.msg,
+            type: 'success'
+          })
         }
       })
     }

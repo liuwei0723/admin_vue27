@@ -62,12 +62,14 @@ export default {
             .post('login', this.userForm)
             .then(res => {
               this.loading = false
+              console.log(res);
+              
               if (res.data.meta.status !== 200) {
                 //登录失败
                 this.$message.error(res.data.meta.msg)
               } else {
                 this.$message({message:'登录成功',type:'success'})
-                console.log(res.data.data);
+                // console.log(res.data.data);
                 localStorage.setItem('mytoken',res.data.data.token)
 
                 
