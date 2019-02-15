@@ -4,7 +4,7 @@
       <div class="logo"></div>
       <el-menu
         router
-        default-active="/layout/user"
+        default-active="/layout/users"
         :collapse="isCollapse"
         :unique-opened="true"
         class="el-menu-vertical-demo"

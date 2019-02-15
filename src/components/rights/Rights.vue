@@ -3,11 +3,8 @@
     <el-row>
       <el-col :span="24">
         <!-- 面包屑 -->
-        <el-breadcrumb separator-class="el-icon-arrow-right">
-          <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-          <el-breadcrumb-item>权限管理</el-breadcrumb-item>
-          <el-breadcrumb-item>权限列表</el-breadcrumb-item>
-        </el-breadcrumb>
+        
+        <my-breadcrumb level1='权限管理' level2='权限列表'></my-breadcrumb>
       </el-col>
     </el-row>
     <el-table :data="rightsList" border style="width: 100%">
@@ -21,21 +18,15 @@
 
 
 
-
-<style scoped>
-.el-breadcrumb {
-  background-color: #d3dce6;
-  height: 50px;
-  line-height: 50px;
-  padding-left: 10px;
-}
-
-
-
-</style>
-
 <script>
+//导入
+import MyBreadcrumb from '../subcomponents/MyBreadcrumb'
+
 export default {
+  components:{
+    // "my-breadcrumb":MyBreadcrumb
+    MyBreadcrumb
+  },
   data() {
     return {
       rightsList: [] //权限列表,给表格使用

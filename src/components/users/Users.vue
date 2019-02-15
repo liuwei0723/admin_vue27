@@ -3,11 +3,12 @@
     <el-row>
       <el-col :span="24">
         <!-- 面包屑 -->
-        <el-breadcrumb separator-class="el-icon-arrow-right">
+        <!-- <el-breadcrumb separator-class="el-icon-arrow-right">
           <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
           <el-breadcrumb-item>用户管理</el-breadcrumb-item>
           <el-breadcrumb-item>用户列表</el-breadcrumb-item>
-        </el-breadcrumb>
+        </el-breadcrumb> -->
+        <my-breadcrumb @myevent='getChildValue' level1='用户管理' level2='用户列表'></my-breadcrumb>
       </el-col>
     </el-row>
     <el-input placeholder="请输入内容" v-model="query" class="search">
@@ -131,12 +132,7 @@
 
 
 <style scoped>
-.el-breadcrumb {
-  background-color: #d3dce6;
-  height: 50px;
-  line-height: 50px;
-  padding-left: 10px;
-}
+
 .search {
   width: 300px;
 }
@@ -151,7 +147,14 @@
 
 <script>
 // import axios from 'axios'
+//导入
+import MyBreadcrumb from '../subcomponents/MyBreadcrumb'
+
 export default {
+  components:{
+    // "my-breadcrumb":MyBreadcrumb
+    MyBreadcrumb
+  },
   data() {
     return {
       query: '', //搜索关键字
@@ -351,6 +354,11 @@ export default {
           })
         }
       })
+    },
+    //接收子组件传值的回调函数
+    getChildValue(person){
+      console.log(person);
+      
     }
   }
 }
