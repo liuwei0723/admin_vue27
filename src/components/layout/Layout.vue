@@ -4,7 +4,7 @@
       <div class="logo"></div>
       <el-menu
         router
-        default-active="/layout/users"
+        :default-active = "defaultActive"
         :collapse="isCollapse"
         :unique-opened="true"
         class="el-menu-vertical-demo"
@@ -12,37 +12,17 @@
         text-color="#fff"
         active-text-color="#ffd04b"
       >
-        <el-submenu index="1">
+        <el-submenu v-for="item in menus" :key='item.id' :index="item.id+''">
           <template slot="title">
             <i class="el-icon-location"></i>
-            <span>用户管理</span>
+            <span>{{item.authName}}</span>
           </template>
 
-          <el-menu-item index="/layout/users">
-            <i class="el-icon-menu"></i>用户列表
+          <el-menu-item v-for="subitem in item.children" :key='subitem.id' :index="'/layout/'+subitem.path">
+            <i class="el-icon-menu"></i>{{subitem.authName}}
           </el-menu-item>
         </el-submenu>
-        <el-submenu index="2">
-          <template slot="title">
-            <i class="el-icon-location"></i>
-            <span>权限管理</span>
-          </template>
-          <el-menu-item index="/layout/roles">
-            <i class="el-icon-menu"></i>角色列表
-          </el-menu-item>
-          <el-menu-item index="/layout/rights">
-            <i class="el-icon-menu"></i>权限列表
-          </el-menu-item>
-        </el-submenu>
-        <el-submenu index="3">
-          <template slot="title">
-            <i class="el-icon-location"></i>
-            <span>商品管理</span>
-          </template>
-          <el-menu-item index="/layout/goodslist">商品列表</el-menu-item>
-          <el-menu-item index="3-2">商品分类</el-menu-item>
-          <el-menu-item index="3-3">商品参数</el-menu-item>
-        </el-submenu>
+        
       </el-menu>
     </el-aside>
     <el-container>
@@ -124,8 +104,15 @@
 export default {
   data() {
     return {
-      isCollapse: false
+      isCollapse: false,
+      menus: [], //登录用户的菜单列表
+      defaultActive: "/layout/users" //给defaultActive设置了一个默认值
     }
+  },
+  created() {
+    //设置让当前的路径高亮
+    this.defaultActive = this.$route.path
+    this.getMenus()
   },
   methods: {
     toggleMenu() {
@@ -147,6 +134,11 @@ export default {
             message: '已取消退出'
           })
         })
+    },
+    getMenus(){
+      this.$axios.get('menus').then(res=>{
+        this.menus = res.data.data
+      })
     }
   }
 }
