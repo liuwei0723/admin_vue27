@@ -13,6 +13,8 @@ import Users from '../components/users/Users.vue'
 import Welcome from '../components/welcome/Welcome.vue'
 import Rights from '../components/rights/Rights.vue'
 import Roles from '../components/roles/Roles.vue'
+import Categories from '../components/goods/Categories.vue'
+import Params from '../components/goods/Params.vue'
 
 //创建路由对象,导出去
 const router = new VueRouter({
@@ -47,8 +49,17 @@ const router = new VueRouter({
                     path: 'roles',
                     component: Roles
                 },
+                {
+                    path: 'categories',
+                    component: Categories
+                },
+                {
+                    path: 'params',
+                    component: Params
+                },
             ]
         },
+        
 
 
     ]
