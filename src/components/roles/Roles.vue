@@ -163,9 +163,11 @@ export default {
         roleName: [{ required: true, message: '请输入角色名', trigger: 'blur' }]
       },
       defaultProps: {
+        // 配置对应关系
         children: 'children',
         label: 'authName'
-      }
+      },
+      roleId: null //角色ID
     }
   },
   // 当Users组件的实例创建完成之后，会自动执行该函数
@@ -262,12 +264,14 @@ export default {
     //删除角色下面的权限
     deleteRights(index, roleId, rightId) {
       this.$axios.delete(`roles/${roleId}/rights/${rightId}`).then(res => {
-        this.$message({
-          message: res.data.meta.msg,
-          type: 'success'
-        })
-        //重新给角色权限赋值
-        this.rolesList[index].children = res.data.data
+        if (res.data.meta.status === 200) {
+          this.$message({
+            message: res.data.meta.msg,
+            type: 'success'
+          })
+          //重新给角色权限赋值
+          this.rolesList[index].children = res.data.data
+        }
       })
     },
     //弹出修改权限对话框
@@ -291,9 +295,11 @@ export default {
       this.$axios.get(`rights/tree`).then(res => {
         this.treeRightsList = res.data.data
         console.log(res)
-      })
-      // 显示
+
+        // 显示
       this.dialog4GrantVisible = true
+      })
+      
     },
     // 确认授权
     sumbitGrant() {
@@ -306,19 +312,22 @@ export default {
       //这是最终需要提交给后台的字符串,里面包含选中和半选中的key
       const rids = lastKeys.join(',')
       //给角色赋值
-      this.$axios.post(`roles/${this.roleId}/rights`,{
-        rids:rids
-      }).then(res => {
-        this.$message({
-          message: res.data.meta.msg,
-          type: 'success'
+      this.$axios
+        .post(`roles/${this.roleId}/rights`, {
+          rids: rids
         })
-
-        // 关闭对话框
-        this.dialog4GrantVisible = false
-      })
-      //刷新列表
-      this.getRolesListData()
+        .then(res => {
+          if (res.data.meta.status === 200) {
+            this.$message({
+              message: res.data.meta.msg,
+              type: 'success'
+            })
+            // 关闭对话框
+            this.dialog4GrantVisible = false
+            //刷新列表
+            this.getRolesListData()
+          }
+        })
     }
   }
 }
