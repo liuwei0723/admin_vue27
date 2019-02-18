@@ -15,6 +15,8 @@ import Rights from '../components/rights/Rights.vue'
 import Roles from '../components/roles/Roles.vue'
 import Categories from '../components/goods/Categories.vue'
 import Params from '../components/goods/Params.vue'
+import Goods from '../components/goods/Goods.vue'
+import GoodsList from '../components/goods/GoodsList.vue'
 
 //创建路由对象,导出去
 const router = new VueRouter({
@@ -56,6 +58,14 @@ const router = new VueRouter({
                 {
                     path: 'params',
                     component: Params
+                },
+                {
+                    path: 'goods',
+                    component: Goods,
+                    children:[{
+                        path: '',
+                    component: GoodsList
+                    }]
                 },
             ]
         },
