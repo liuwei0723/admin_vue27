@@ -17,6 +17,7 @@ import Categories from '../components/goods/Categories.vue'
 import Params from '../components/goods/Params.vue'
 import Goods from '../components/goods/Goods.vue'
 import GoodsList from '../components/goods/GoodsList.vue'
+import Addgoods from '../components/goods/Addgoods.vue'
 
 //创建路由对象,导出去
 const router = new VueRouter({
@@ -65,7 +66,13 @@ const router = new VueRouter({
                     children:[{
                         path: '',
                     component: GoodsList
-                    }]
+                    },
+                    {
+                        path: 'addgoods',
+                        name:'Addgoods',
+                    component: Addgoods,
+                    }
+                ]
                 },
             ]
         },

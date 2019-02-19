@@ -33,7 +33,7 @@
                 v-for="(tag,index) in scope.row.attr_vals"
                 closable
                 :disable-transitions="false"
-                @close="deleteAttrVal(index)"
+                @close="deleteAttrVal(index,scope.row)"
               >{{tag}}</el-tag>
               <el-input
                 class="input-new-tag"
@@ -41,7 +41,7 @@
                 v-model="scope.row.inputValue"
                 ref="saveTagInput"
                 size="small"
-                @keyup.enter.native="addDynamicParamsValue"
+                @keyup.enter.native="addDynamicParamsValue(scope.row)"
                 @blur="hideInput(scope.row)"
                 placeholder="按回车添加属性"
               ></el-input>
@@ -80,16 +80,6 @@
         <!-- 添加按钮 -->
         <el-button type="success" plain @click="dialogVisible4AddStaticParams=true">添加静态属性</el-button>
         <el-table :data="staticProperties" stripe border style="width: 100%">
-          <el-table-column type="expand">
-            <!-- 此时这里的作用域插槽
-          scope.row rolesList中遍历到的每一行的数据,每个角色的数据
-          scope.column 这一列
-          scope.$index 遍历到每一行数据的索引
-            -->
-            <template slot-scope="scope">
-              <!-- 具体列表 -->
-            </template>
-          </el-table-column>
           <el-table-column type="index" width="50"></el-table-column>
           <el-table-column prop="attr_name" label="属性名称" width="250"></el-table-column>
           <el-table-column prop="attr_vals" label="属性值" width="250"></el-table-column>
@@ -178,15 +168,15 @@
     <!-- 7.0 修改静态属性对话框 -->
     <el-dialog title="修改静态属性" :visible.sync="dialogVisible4EditStaticParams" width="50%">
       <el-form
-        :model="editStaticParamsForm"
+        :model="editStaticParamsObj"
         :rules="rules"
-        ref="editDynamicParamsForm"
+        ref="editStaticParamsForm"
         label-width="100px"
       >
-        <el-form-item label="参数名称" prop="attr_name">
+        <el-form-item label="属性名称" prop="attr_name">
           <el-input v-model="editStaticParamsObj.attr_name"></el-input>
         </el-form-item>
-        <el-form-item label="参数值" prop="attr_vals">
+        <el-form-item label="属性值" prop="attr_vals">
           <el-input v-model="editStaticParamsObj.attr_vals"></el-input>
         </el-form-item>
       </el-form>
@@ -231,16 +221,13 @@ export default {
       },
       editStaticParamsObj: {
         attr_name: '',
-        attr_id: '',
         attr_vals: '',
         attr_sel: 'only'
       },
       rules: {
-        attr_name: [
-          { required: true, message: '请输入参数名称', trigger: 'blur' }
-        ],
+        attr_name: [{ required: true, message: '请输入名称', trigger: 'blur' }],
         attr_vals: [
-          { required: true, message: '请输入参数值', trigger: 'blur' }
+          { required: true, message: '请输入属性值', trigger: 'blur' }
         ]
       },
       inputVisible: false,
@@ -337,9 +324,10 @@ export default {
               item.attr_vals = item.attr_vals.split(',')
             }
 
-            ;(item.inputVisible = false), (item.inputValue = '')
+            item.inputVisible = false
+            item.inputValue = ''
           })
-
+          // 给动态参数数组赋值
           this.dynamicParams = res.data.data
         })
     },
@@ -353,7 +341,6 @@ export default {
           }
         })
         .then(res => {
-          console.log(res.data)
           this.staticProperties = res.data.data
         })
     },
@@ -489,39 +476,59 @@ export default {
         if (valid) {
           this.$axios
             .put(
-              `categories/${this.thirdLevelId}/attributes/${
-                this.dynamicParamsObj.attr_id
-              }`,
-              {
-                attr_name: this.dynamicParamsObj.attr_name,
-                attr_sel: 'many'
-              }
+              `categories/${this.thirdLevelId}/attributes/${this.attr_id}`,
+              this.editStaticParamsObj
             )
             .then(res => {
+              console.log(res)
+
               if (res.data.meta.status === 200) {
-                this.dialogVisible4EditDynamicParams = false
-
-                this.getThreeLevelDynamicParams()
-
                 this.$message({
                   type: 'success',
                   message: res.data.meta.msg
                 })
+
+                this.dialogVisible4EditStaticParams = false
+                // 刷新静态属性列表
+                this.getThreeLevelStaticProperty()
               }
             })
         }
       })
     },
-
-    //删除动态属性的某个值 
-    deleteAttrVal(index,params) {
-      //删除params中的attr_vals
-      params.attr_vals.splice(index,1)
-      //调用接口去更新动态参数的值
-      this.addOrRemoveDynamicParamsValue(params)
+    //删除静态属性
+    deleteStaticParams(attr_id) {
+      this.$confirm('删除该属性, 是否确认?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(() => {
+          //删除的逻辑
+          this.$axios
+            .delete(`categories/${this.thirdLevelId}/attributes/${attr_id}`)
+            .then(response => {
+              if (response.data.meta.status === 200) {
+                this.$message({
+                  type: 'success',
+                  message: response.data.meta.msg
+                })
+                this.getThreeLevelStaticProperty()
+              }
+            })
+        })
+        .catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          })
+        })
     },
+
     //失去焦点的时候让我们的input框隐藏
-    hideInput() {},
+    hideInput(params) {
+      params.inputVisible = false
+    },
     //我们的input框显示
     showInput(obj) {
       //我们更改了模型之后,Vue会重新渲染
@@ -529,29 +536,50 @@ export default {
       //等我们的页面完全渲染完毕之后,我才能拿到dom操作
       this.$nextTick(() => {
         //它的执行时机是,当我们的所有DOM元素渲染完毕,Vue框架会自动调用这个回调函数
+
         this.$refs.saveTagInput.focus()
       })
     },
+    //删除动态属性的某个值
+    deleteAttrVal(index, params) {
+      //删除params中的attr_vals
+      params.attr_vals.splice(index, 1)
+      //调用接口去更新动态参数的值
+      this.addOrRemoveDynamicParamsValue(params)
+    },
     //添加某个动态属性的值
-    addDynamicParamsValue() {},
+    addDynamicParamsValue(params) {
+      if (params.inputValue.trim().length === 0) {
+        this.$message({
+          message: '输入内容之后，才能添加哦',
+          type: 'warning'
+        })
+        return
+      }
+      //给当前数组添加内容,就会导致视图发生变化
+      params.attr_vals.push(params.inputValue)
+      //添加动态参数的值
+      this.addOrRemoveDynamicParamsValue(params)
+    },
     //添加或是删除动态参数的值
     addOrRemoveDynamicParamsValue(params) {
-      this.$axios.put(
-        `categories/${this.thirdLevelId}/attributes/${this.params.attr_id}`,
-        {
+      this.$axios
+        .put(`categories/${this.thirdLevelId}/attributes/${params.attr_id}`, {
           attr_name: params.attr_name,
           attr_sel: 'many',
           attr_vals: params.attr_vals.join(',')
-        }
-      ).then(res=>{
-        if(res.data.meta.status === 200){
-          this.$message({
-            message:res.data.meta.msg,
-            type:'success'
-          })
-          //清空我们的params的inputValue的值 ,让inputVisible
-        }
-      })
+        })
+        .then(res => {
+          if (res.data.meta.status === 200) {
+            this.$message({
+              message: res.data.meta.msg,
+              type: 'success'
+            })
+            //清空我们的params的inputValue的值 ,让inputVisible
+            params.inputVisible = false
+            params.inputValue = ''
+          }
+        })
     }
   }
 }

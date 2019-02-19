@@ -14,6 +14,7 @@ Vue.use(ElementUI)
 import router from './router'
 
 import './utils/myAxios'
+import './filter/index'
 
 new Vue({
   render: h => h(App),
