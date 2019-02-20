@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="title">添加商品信息</div>
+    <div class="title">修改商品信息</div>
     <!-- 1.0步骤条 -->
     <el-steps :active="active" finish-status="success" :space="200">
       <el-step title="步骤 1"></el-step>
@@ -30,6 +30,7 @@
               :show-all-levels="false"
               :props="props"
               @change="changeCategory"
+              v-model="selectedOptions"
             ></el-cascader>
           </el-form-item>
           <el-form-item label="是否促销">
@@ -72,6 +73,7 @@
             :on-remove="handleRemove"
             :on-success="handleSuccess"
             list-type="picture"
+            :file-list="fileList"
           >
             <el-button size="small" type="success" icon="el-icon-upload">点击上传</el-button>
             <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
@@ -85,7 +87,7 @@
     <!-- 4.0 底部菜单按钮 -->
     <div class="footer">
       <el-button @click="$router.go(-1)">取消</el-button>
-      <el-button type="primary" @click="addGoods">确定</el-button>
+      <el-button type="primary" @click="updateGoods">修改</el-button>
     </div>
     <!-- 5.0 图片预览对话框 -->
     <el-dialog :visible.sync="dialogVisibleForPreview" width="50%">
@@ -123,7 +125,6 @@
 }
 </style>
 
-
 <script>
 import { quillEditor } from 'vue-quill-editor'
 export default {
@@ -132,14 +133,14 @@ export default {
   },
   data() {
     return {
-      active: 0,//步骤条激活的索引
+      active: 0,
       options: [], // 级联选择器需要的数据
       goodsObj: {
         goods_name: '', //商品名称
         goods_cat: '', //商品分类
         goods_price: '', //商品价格
         goods_number: '', //商品数量
-        goods_introduce: '', //商品介绍
+        goods_introduce: '好商品', //商品介绍
         is_promote: 0, //是否促销
         pics: [], //上传的图片临时路径（数组）
         attrs: [] //商品的参数（数组）
@@ -173,13 +174,38 @@ export default {
         Authorization: localStorage.getItem('mytoken')
       },
       previewImageUrl: '', //要预览的图片路径
-      dialogVisibleForPreview: false
+      dialogVisibleForPreview: false,
+      selectedOptions: [], //默认选择的级联数据
+      fileList: [] //修改时候,让用户看到之前添加的图片数组
     }
   },
   created() {
     this.getCategoriesData()
+    this.getGoodsData()
   },
   methods: {
+    //获取所有商品信息
+    getGoodsData() {
+      this.$axios.get(`goods/${this.$route.query.goods_id}`).then(res => {
+        // console.log(res.data.data);
+        this.selectedOptions = [
+          res.data.data.cat_one_id,
+          res.data.data.cat_two_id,
+          res.data.data.cat_three_id
+        ]
+        //三级分类赋值
+        this.cat_id = res.data.data.cat_id
+        //给我们的fileList赋值,这样才能让用户看到
+        res.data.data.pics.forEach((item, index) => {
+          this.fileList.push({
+            name: `第${index + 1}张`,
+            url: item.pics_mid_url
+          })
+        })
+
+        this.goodsObj = res.data.data
+      })
+    },
     tabClick(val) {
       switch (val.name) {
         case 'base':
@@ -258,35 +284,29 @@ export default {
           } else if (type === 'only') {
             this.sproperties = res.data.data
           }
-          console.log(this.dparams)
-          console.log(this.sproperties)
         })
     },
     //图片上传相关
     handlePreview(file) {
-      
-      this.previewImageUrl = file.response.data.url
-      //预览图片
+      this.previewImageUrl = file.url
       this.dialogVisibleForPreview = true
     },
     //
     handleRemove(file, fileList) {
       //要删除的url地址
-      const deleteUrl = file.response.data.tmp_path
-      // let dIndex =-1
-      //使用some遍历 goodsObj.pics 数组
-      // this.goodsObj.pics.some((item, index) => {
-      //   if (item.pic === deleteUrl) {
-      //     dIndex = index
-      //     return true
-      //   }
-      // })
+
+      const deleteUrl = file.url
+
       const dIndex = this.goodsObj.pics.findIndex(
         item => item.pic === deleteUrl
       )
-
       this.goodsObj.pics.splice(dIndex, 1)
+
+      this.fileList.forEach((item, index) => {
+        item.name = `第${index + 1}张`
+      })
     },
+    // 上传图片成功之后的回调函数
     handleSuccess(res, file, fileList) {
       // console.log(res)
       // console.log(file)
@@ -295,28 +315,38 @@ export default {
         this.goodsObj.pics.push({
           pic: res.data.tmp_path
         })
+        //重新赋值
+        this.fileList.push({
+          url: res.data.url
+        })
+        this.fileList.forEach((item, index) => {
+          item.name = `第${index + 1}张`
+        })
       }
     },
-    //添加商品
-    addGoods() {
+    //修改商品
+    updateGoods() {
       this.$refs.goodsForm.validate(valid => {
         if (valid) {
+          //把动态参数与静态属性合在一起提交
           this.goodsObj.attrs = this.dparams.concat(this.sproperties)
 
           //发送请求
-          this.$axios.post('goods', this.goodsObj).then(res => {
-            if (res.data.meta.status === 201) {
-              this.$message({
-                type: 'success',
-                message: res.data.meta.msg
-              })
+          this.$axios
+            .put(`goods/${this.goodsObj.goods_id}`, this.goodsObj)
+            .then(res => {
+              if (res.data.meta.status === 200) {
+                this.$message({
+                  type: 'success',
+                  message: res.data.meta.msg
+                })
 
-              // 跳转到商品列表
-              this.$router.push({ name: 'GoodsList' })
-            } else {
-              this.$message.error(res.data.meta.msg)
-            }
-          })
+                // 跳转到商品列表
+                this.$router.go(-1)
+              } else {
+                this.$message.error(res.data.meta.msg)
+              }
+            })
         }
       })
     }

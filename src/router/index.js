@@ -18,6 +18,7 @@ import Params from '../components/goods/Params.vue'
 import Goods from '../components/goods/Goods.vue'
 import GoodsList from '../components/goods/GoodsList.vue'
 import Addgoods from '../components/goods/Addgoods.vue'
+import EditGoods from '../components/goods/EditGoods.vue'
 
 //创建路由对象,导出去
 const router = new VueRouter({
@@ -63,20 +64,26 @@ const router = new VueRouter({
                 {
                     path: 'goods',
                     component: Goods,
-                    children:[{
-                        path: '',
-                    component: GoodsList
-                    },
-                    {
-                        path: 'addgoods',
-                        name:'Addgoods',
-                    component: Addgoods,
-                    }
-                ]
+                    children: [{
+                            path: '',
+                            name: 'GoodsList',
+                            component: GoodsList
+                        },
+                        {
+                            path: 'addgoods',
+                            name: 'Addgoods',
+                            component: Addgoods,
+                        },
+                        {
+                            path: 'editgoods',
+                            name: 'EditGoods',
+                            component: EditGoods,
+                        }
+                    ]
                 },
             ]
         },
-        
+
 
 
     ]
