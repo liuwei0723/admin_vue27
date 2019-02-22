@@ -21,6 +21,13 @@ import router from './router'
 import './utils/myAxios'
 import './filter/index'
 
+// 集成百度地图
+import BaiduMap from 'vue-baidu-map'
+Vue.use(BaiduMap, {
+  // ak 是在百度地图开发者平台申请的密钥 详见 http://lbsyun.baidu.com/apiconsole/key */
+  ak: 'Sd2ZilSLMnz9yjesdPrrVl63onT8vQ56'
+})
+
 new Vue({
   render: h => h(App),
   router //注入到根实例

@@ -10,8 +10,12 @@
   "dependencies": {
     "axios": "^0.18.0",
     "dzh-tree-grid": "^1.0.0",
+    "echarts": "^4.1.0",
     "element-ui": "^2.5.4",
+    "v-distpicker": "^1.1.0",
     "vue": "^2.5.21",
+    "vue-baidu-map": "^0.21.16",
+    "vue-echarts": "^4.0.1",
     "vue-quill-editor": "^3.0.6",
     "vue-router": "^3.0.2"
   },

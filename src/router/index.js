@@ -20,6 +20,8 @@ import GoodsList from '../components/goods/GoodsList.vue'
 import Addgoods from '../components/goods/Addgoods.vue'
 import EditGoods from '../components/goods/EditGoods.vue'
 import Orders from '../components/orders/Orders.vue'
+import Reports from '../components/reports/Reports.vue'
+
 
 //创建路由对象,导出去
 const router = new VueRouter({
@@ -82,7 +84,8 @@ const router = new VueRouter({
                         }
                     ]
                 },
-                {path:'orders',component:Orders}
+                {path:'orders',component:Orders},
+                {path:'reports',component:Reports},
             ]
         },
 

@@ -77,11 +77,12 @@
     </el-dialog>
     <!-- 6.0 百度地图 -->
     <el-dialog title="百度地图" :visible.sync="dialogVisible4Map" width="50%">
-      
+      <baidu-map :center="center" :zoom="zoom" class="map">
+      </baidu-map>
       
       <span slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible4City = false">取 消</el-button>
-        <el-button type="primary" @click="showDetailAddress">确 定</el-button>
+        <el-button @click="dialogVisible4Map = false">取 消</el-button>
+        <el-button type="primary" @click="showMap">确 定</el-button>
       </span>
     </el-dialog>
   </div>
@@ -118,7 +119,9 @@ export default {
           value: '宝安区'
         }
       },
-      textarea: ''
+      textarea: '',
+      center: {lng: 114.06667, lat: 22.61667}, //中心点 包括经度和维度
+      zoom: 12 //缩放比例
     }
   },
   created() {
@@ -200,6 +203,11 @@ export default {
   padding-top: 10px;
   height: 35px;
   line-height: 35px;
+}
+/* 地图容器必须设置宽和高属性 */
+.map {
+  width: 600px;
+  height: 300px;
 }
 </style>
 
